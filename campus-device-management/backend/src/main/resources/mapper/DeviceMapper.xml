@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.device.dao.DeviceMapper">
+
+    <resultMap id="DeviceResultMap" type="com.campus.device.model.entity.Device">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="deviceTypeId" column="device_type_id"/>
+        <result property="location" column="location"/>
+        <result property="status" column="status"/>
+        <result property="serialNumber" column="serial_number"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="purchaseDate" column="purchase_date"/>
+        <result property="warrantyExpiry" column="warranty_expiry"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, device_type_id, location, status, serial_number, manufacturer,
+        purchase_date, warranty_expiry, description, created_at, updated_at
+    </sql>
+
+    <select id="selectByCondition" resultMap="DeviceResultMap"
+            parameterType="com.campus.device.model.dto.DeviceQueryParam">
+        SELECT <include refid="Base_Column_List"/>
+        FROM device
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="deviceTypeId != null">
+                AND device_type_id = #{deviceTypeId}
+            </if>
+            <if test="location != null and location != ''">
+                AND location LIKE CONCAT('%', #{location}, '%')
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectById" resultMap="DeviceResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM device
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="DeviceResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM device
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.campus.device.model.entity.Device"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device (name, device_type_id, location, status, serial_number, manufacturer,
+                            purchase_date, warranty_expiry, description, created_at, updated_at)
+        VALUES (#{name}, #{deviceTypeId}, #{location}, #{status}, #{serialNumber}, #{manufacturer},
+                #{purchaseDate}, #{warrantyExpiry}, #{description}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device (name, device_type_id, location, status, serial_number, manufacturer,
+                            purchase_date, warranty_expiry, description, created_at, updated_at)
+        VALUES
+        <foreach collection="devices" item="d" separator=",">
+            (#{d.name}, #{d.deviceTypeId}, #{d.location}, #{d.status}, #{d.serialNumber},
+             #{d.manufacturer}, #{d.purchaseDate}, #{d.warrantyExpiry}, #{d.description},
+             #{d.createdAt}, #{d.updatedAt})
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.campus.device.model.entity.Device">
+        UPDATE device
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="deviceTypeId != null">device_type_id = #{deviceTypeId},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="serialNumber != null">serial_number = #{serialNumber},</if>
+            <if test="manufacturer != null">manufacturer = #{manufacturer},</if>
+            <if test="purchaseDate != null">purchase_date = #{purchaseDate},</if>
+            <if test="warrantyExpiry != null">warranty_expiry = #{warrantyExpiry},</if>
+            <if test="description != null">description = #{description},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM device WHERE id = #{id}
+    </delete>
+
+    <select id="countByStatus" resultType="java.util.Map">
+        SELECT status, COUNT(*) AS count
+        FROM device
+        GROUP BY status
+    </select>
+
+    <select id="countByMonthRegistered" resultType="java.util.Map">
+        SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS count
+        FROM device
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL #{months} MONTH)
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        ORDER BY month ASC
+    </select>
+
+</mapper>
