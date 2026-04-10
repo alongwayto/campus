@@ -5,8 +5,8 @@ import com.campus.device.exception.Result;
 import com.campus.device.model.dto.LoginRequest;
 import com.campus.device.model.dto.LoginResponse;
 import com.campus.device.service.AuthService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(tags = "Authentication")
+@Tag(name = "Authentication")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -22,14 +22,14 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @ApiOperation("Login")
+    @Operation(summary = "Login")
     @PostMapping("/login")
     public Result<LoginResponse> login(@Validated @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return Result.success(response);
     }
 
-    @ApiOperation("Logout")
+    @Operation(summary = "Logout")
     @Log(operation = "Logout")
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest request) {

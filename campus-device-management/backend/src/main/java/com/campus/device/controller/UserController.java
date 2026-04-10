@@ -5,13 +5,13 @@ import com.campus.device.exception.Result;
 import com.campus.device.model.dto.PageResult;
 import com.campus.device.model.entity.User;
 import com.campus.device.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Api(tags = "User Management")
+@Tag(name = "User Management")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @ApiOperation("List users with pagination")
+    @Operation(summary = "List users with pagination")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Result<PageResult<User>> list(
@@ -28,14 +28,14 @@ public class UserController {
         return Result.success(userService.listUsers(pageNum, pageSize));
     }
 
-    @ApiOperation("Get user by ID")
+    @Operation(summary = "Get user by ID")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> getById(@PathVariable Long id) {
         return Result.success(userService.getById(id));
     }
 
-    @ApiOperation("Add user")
+    @Operation(summary = "Add user")
     @Log(operation = "Add User")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -44,7 +44,7 @@ public class UserController {
         return Result.success();
     }
 
-    @ApiOperation("Update user")
+    @Operation(summary = "Update user")
     @Log(operation = "Update User")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -54,7 +54,7 @@ public class UserController {
         return Result.success();
     }
 
-    @ApiOperation("Delete user")
+    @Operation(summary = "Delete user")
     @Log(operation = "Delete User")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

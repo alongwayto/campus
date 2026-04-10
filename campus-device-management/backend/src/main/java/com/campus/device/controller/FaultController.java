@@ -6,15 +6,15 @@ import com.campus.device.model.dto.FaultQueryParam;
 import com.campus.device.model.dto.PageResult;
 import com.campus.device.model.entity.FaultRecord;
 import com.campus.device.service.FaultService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Api(tags = "Fault Management")
+@Tag(name = "Fault Management")
 @RestController
 @RequestMapping("/api/faults")
 @RequiredArgsConstructor
@@ -22,19 +22,19 @@ public class FaultController {
 
     private final FaultService faultService;
 
-    @ApiOperation("List faults with pagination and filters")
+    @Operation(summary = "List faults with pagination and filters")
     @GetMapping
     public Result<PageResult<FaultRecord>> list(FaultQueryParam param) {
         return Result.success(faultService.listFaults(param));
     }
 
-    @ApiOperation("Get fault by ID")
+    @Operation(summary = "Get fault by ID")
     @GetMapping("/{id}")
     public Result<FaultRecord> getById(@PathVariable Long id) {
         return Result.success(faultService.getById(id));
     }
 
-    @ApiOperation("Report fault")
+    @Operation(summary = "Report fault")
     @Log(operation = "Report Fault")
     @PostMapping
     public Result<Void> report(@RequestBody FaultRecord fault) {
@@ -42,7 +42,7 @@ public class FaultController {
         return Result.success();
     }
 
-    @ApiOperation("Update fault")
+    @Operation(summary = "Update fault")
     @Log(operation = "Update Fault")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody FaultRecord fault) {
@@ -51,7 +51,7 @@ public class FaultController {
         return Result.success();
     }
 
-    @ApiOperation("Delete fault")
+    @Operation(summary = "Delete fault")
     @Log(operation = "Delete Fault")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -60,7 +60,7 @@ public class FaultController {
         return Result.success();
     }
 
-    @ApiOperation("Assign fault to maintainer")
+    @Operation(summary = "Assign fault to maintainer")
     @Log(operation = "Assign Fault")
     @PutMapping("/{id}/assign")
     @PreAuthorize("hasAnyRole('ADMIN', 'MAINTAINER')")
@@ -70,7 +70,7 @@ public class FaultController {
         return Result.success();
     }
 
-    @ApiOperation("Resolve fault")
+    @Operation(summary = "Resolve fault")
     @Log(operation = "Resolve Fault")
     @PutMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'MAINTAINER')")

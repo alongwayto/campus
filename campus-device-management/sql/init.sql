@@ -262,3 +262,163 @@ INSERT INTO `fault_record` (`device_id`, `reporter_id`, `assignee_id`, `title`, 
    '复印时频繁卡纸，同时面板提示青色墨粉即将耗尽，请及时处理。',
    1, 4, '2024-04-25 11:00:00', '2024-04-25 14:00:00', '2024-04-26 10:00:00',
    '已清理卡纸并更换墨粉盒，设备恢复正常，问题关闭');
+
+-- ============================================================
+-- AI 和扩展功能表
+-- ============================================================
+
+-- ----------------------------
+-- Table: device_metrics (设备实时指标)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `device_metrics` (
+  `id`                bigint       NOT NULL AUTO_INCREMENT,
+  `device_id`         bigint       NOT NULL,
+  `cpu_usage`         decimal(5,2) DEFAULT NULL COMMENT 'CPU使用率(%)',
+  `memory_usage`      decimal(5,2) DEFAULT NULL COMMENT '内存使用率(%)',
+  `temperature`       decimal(5,2) DEFAULT NULL COMMENT '温度(°C)',
+  `power_consumption` decimal(8,2) DEFAULT NULL COMMENT '功耗(W)',
+  `error_count`       int          DEFAULT 0 COMMENT '错误次数',
+  `network_status`    varchar(20)  DEFAULT NULL COMMENT 'online/offline/unstable',
+  `recorded_at`       datetime     DEFAULT CURRENT_TIMESTAMP,
+  `created_at`        datetime     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_device_id`   (`device_id`),
+  KEY `idx_recorded_at` (`recorded_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备实时指标表';
+
+-- ----------------------------
+-- Table: ai_model_data (AI训练数据)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `ai_model_data` (
+  `id`           bigint       NOT NULL AUTO_INCREMENT,
+  `device_id`    bigint       DEFAULT NULL,
+  `fault_id`     bigint       DEFAULT NULL,
+  `feature_data` json         DEFAULT NULL COMMENT '特征数据(JSON)',
+  `label`        varchar(100) DEFAULT NULL COMMENT '标签/分类',
+  `data_type`    varchar(50)  DEFAULT NULL COMMENT 'train/test/validate',
+  `created_at`   datetime     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_device_id` (`device_id`),
+  KEY `idx_data_type` (`data_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI训练数据表';
+
+-- ----------------------------
+-- Table: ai_predictions (AI预测结果)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `ai_predictions` (
+  `id`              bigint        NOT NULL AUTO_INCREMENT,
+  `device_id`       bigint        NOT NULL,
+  `prediction_type` varchar(50)   NOT NULL COMMENT 'failure/anomaly/maintenance',
+  `probability`     decimal(5,4)  DEFAULT NULL COMMENT '概率(0-1)',
+  `severity`        varchar(20)   DEFAULT NULL COMMENT '风险等级',
+  `description`     text          DEFAULT NULL COMMENT '预测描述',
+  `recommendation`  text          DEFAULT NULL COMMENT '建议措施',
+  `model_version`   varchar(50)   DEFAULT NULL,
+  `predicted_at`    datetime      DEFAULT CURRENT_TIMESTAMP,
+  `created_at`      datetime      DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_device_id`   (`device_id`),
+  KEY `idx_predicted_at` (`predicted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI预测结果表';
+
+-- ----------------------------
+-- Table: alert_config (告警配置)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `alert_config` (
+  `id`           bigint        NOT NULL AUTO_INCREMENT,
+  `name`         varchar(100)  NOT NULL COMMENT '告警名称',
+  `device_type`  varchar(100)  DEFAULT NULL COMMENT '适用设备类型',
+  `metric`       varchar(100)  NOT NULL COMMENT '监控指标',
+  `threshold`    decimal(10,2) NOT NULL COMMENT '告警阈值',
+  `operator`     varchar(10)   NOT NULL COMMENT '>/</>=/<=',
+  `severity`     varchar(20)   NOT NULL COMMENT 'low/medium/high/critical',
+  `enabled`      tinyint(1)    DEFAULT 1,
+  `created_at`   datetime      DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`   datetime      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='告警配置表';
+
+-- ----------------------------
+-- Table: system_config (系统配置)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `system_config` (
+  `id`           bigint        NOT NULL AUTO_INCREMENT,
+  `config_key`   varchar(100)  NOT NULL UNIQUE,
+  `config_value` varchar(1000) NOT NULL,
+  `description`  varchar(500)  DEFAULT NULL,
+  `created_at`   datetime      DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`   datetime      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
+
+-- ----------------------------
+-- Table: maintenance_record (维护记录)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `maintenance_record` (
+  `id`               bigint        NOT NULL AUTO_INCREMENT,
+  `device_id`        bigint        NOT NULL,
+  `maintainer_id`    bigint        DEFAULT NULL,
+  `maintenance_type` varchar(50)   NOT NULL COMMENT 'routine/repair/upgrade/inspection',
+  `title`            varchar(200)  NOT NULL,
+  `description`      text          DEFAULT NULL,
+  `parts_replaced`   varchar(500)  DEFAULT NULL COMMENT '更换零件',
+  `cost`             decimal(10,2) DEFAULT NULL COMMENT '维护费用',
+  `duration_hours`   decimal(5,2)  DEFAULT NULL COMMENT '工时(小时)',
+  `maintained_at`    datetime      DEFAULT CURRENT_TIMESTAMP,
+  `next_maintenance` date          DEFAULT NULL COMMENT '下次维护日期',
+  `created_at`       datetime      DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_mr_device`     (`device_id`),
+  KEY `fk_mr_maintainer` (`maintainer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='维护记录表';
+
+-- ----------------------------
+-- Table: device_attachment (设备附件)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `device_attachment` (
+  `id`          bigint       NOT NULL AUTO_INCREMENT,
+  `device_id`   bigint       NOT NULL,
+  `file_name`   varchar(255) NOT NULL,
+  `file_path`   varchar(500) NOT NULL,
+  `file_type`   varchar(50)  DEFAULT NULL COMMENT 'manual/photo/certificate/other',
+  `file_size`   bigint       DEFAULT NULL COMMENT '文件大小(bytes)',
+  `uploader_id` bigint       DEFAULT NULL,
+  `created_at`  datetime     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_da_device` (`device_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备附件表';
+
+-- ----------------------------
+-- Table: fault_attachment (故障附件)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `fault_attachment` (
+  `id`          bigint       NOT NULL AUTO_INCREMENT,
+  `fault_id`    bigint       NOT NULL,
+  `file_name`   varchar(255) NOT NULL,
+  `file_path`   varchar(500) NOT NULL,
+  `file_type`   varchar(50)  DEFAULT NULL,
+  `file_size`   bigint       DEFAULT NULL,
+  `uploader_id` bigint       DEFAULT NULL,
+  `created_at`  datetime     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_fa_fault` (`fault_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='故障附件表';
+
+-- ============================================================
+-- 初始系统配置数据
+-- ============================================================
+INSERT INTO `system_config` (`config_key`, `config_value`, `description`) VALUES
+  ('system.name',            '智能校园设备管理系统',         '系统名称'),
+  ('system.version',         '1.0.0',                       '系统版本'),
+  ('ai.prediction.enabled',  'true',                        'AI预测功能开关'),
+  ('ai.threshold.high',      '0.7',                         'AI高风险阈值'),
+  ('alert.email.enabled',    'false',                       '邮件告警开关'),
+  ('maintenance.interval',   '90',                          '默认维护间隔天数');
+
+-- 告警配置数据
+INSERT INTO `alert_config` (`name`, `metric`, `threshold`, `operator`, `severity`) VALUES
+  ('CPU使用率过高', 'cpu_usage', 90.00, '>', 'high'),
+  ('内存使用率过高', 'memory_usage', 95.00, '>', 'high'),
+  ('设备温度过高', 'temperature', 85.00, '>', 'critical'),
+  ('错误次数过多', 'error_count', 10.00, '>', 'medium');
