@@ -40,6 +40,26 @@
           <template #title>数据分析</template>
         </el-menu-item>
 
+        <el-menu-item index="/analytics">
+          <el-icon><TrendCharts /></el-icon>
+          <template #title>高级分析</template>
+        </el-menu-item>
+
+        <el-sub-menu index="ai">
+          <template #title>
+            <el-icon><MagicStick /></el-icon>
+            <span>AI 智能</span>
+          </template>
+          <el-menu-item index="/ai/diagnosis">
+            <el-icon><Search /></el-icon>
+            <template #title>AI 故障诊断</template>
+          </el-menu-item>
+          <el-menu-item index="/ai/predict">
+            <el-icon><Histogram /></el-icon>
+            <template #title>设备故障预测</template>
+          </el-menu-item>
+        </el-sub-menu>
+
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -117,6 +137,9 @@ const routeNameMap = {
   '/faults': '故障管理',
   '/monitor': '状态监控',
   '/stats': '数据分析',
+  '/analytics': '高级分析',
+  '/ai/diagnosis': 'AI 故障诊断',
+  '/ai/predict': '设备故障预测',
   '/system/users': '用户管理',
   '/system/roles': '角色管理',
   '/system/logs': '操作日志'

@@ -1,0 +1,36 @@
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .el-table {
+    font-size: 12px;
+  }
+
+  .chart-container {
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-card {
+    padding: 12px;
+  }
+}

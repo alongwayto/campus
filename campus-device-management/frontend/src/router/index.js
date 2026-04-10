@@ -51,6 +51,21 @@ const routes = [
         path: 'system/logs',
         name: 'LogList',
         component: () => import('../views/system/LogList.vue')
+      },
+      {
+        path: 'ai/diagnosis',
+        name: 'AiDiagnosis',
+        component: () => import('../views/ai/AiDiagnosis.vue')
+      },
+      {
+        path: 'ai/predict',
+        name: 'AiPredict',
+        component: () => import('../views/ai/AiPredict.vue')
+      },
+      {
+        path: 'analytics',
+        name: 'Analytics',
+        component: () => import('../views/analytics/Analytics.vue')
       }
     ]
   }
