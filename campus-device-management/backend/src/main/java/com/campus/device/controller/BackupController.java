@@ -3,8 +3,8 @@ package com.campus.device.controller;
 import com.campus.device.aspect.Log;
 import com.campus.device.exception.Result;
 import com.campus.device.service.BackupService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = "Database Backup")
+@Tag(name = "Database Backup")
 @RestController
 @RequestMapping("/api/backup")
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class BackupController {
 
     private final BackupService backupService;
 
-    @ApiOperation("Create database backup")
+    @Operation(summary = "Create database backup")
     @Log(operation = "Database Backup")
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
@@ -31,7 +31,7 @@ public class BackupController {
         return Result.success(fileName);
     }
 
-    @ApiOperation("List available backups")
+    @Operation(summary = "List available backups")
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<List<String>> listBackups() {

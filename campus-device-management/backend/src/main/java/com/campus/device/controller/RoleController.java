@@ -4,15 +4,15 @@ import com.campus.device.aspect.Log;
 import com.campus.device.exception.Result;
 import com.campus.device.model.entity.Role;
 import com.campus.device.service.RoleService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags = "Role Management")
+@Tag(name = "Role Management")
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
@@ -20,19 +20,19 @@ public class RoleController {
 
     private final RoleService roleService;
 
-    @ApiOperation("List all roles")
+    @Operation(summary = "List all roles")
     @GetMapping
     public Result<List<Role>> list() {
         return Result.success(roleService.listAll());
     }
 
-    @ApiOperation("Get role by ID")
+    @Operation(summary = "Get role by ID")
     @GetMapping("/{id}")
     public Result<Role> getById(@PathVariable Long id) {
         return Result.success(roleService.getById(id));
     }
 
-    @ApiOperation("Add role")
+    @Operation(summary = "Add role")
     @Log(operation = "Add Role")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -41,7 +41,7 @@ public class RoleController {
         return Result.success();
     }
 
-    @ApiOperation("Update role")
+    @Operation(summary = "Update role")
     @Log(operation = "Update Role")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -51,7 +51,7 @@ public class RoleController {
         return Result.success();
     }
 
-    @ApiOperation("Delete role")
+    @Operation(summary = "Delete role")
     @Log(operation = "Delete Role")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
