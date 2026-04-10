@@ -2,8 +2,11 @@ package com.campus.device.util;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class AiModelUtil {
@@ -52,13 +55,11 @@ public class AiModelUtil {
         String[] words1 = text1.toLowerCase().split("\\s+");
         String[] words2 = text2.toLowerCase().split("\\s+");
 
+        Set<String> wordSet2 = new HashSet<>(Arrays.asList(words2));
         int common = 0;
         for (String w1 : words1) {
-            for (String w2 : words2) {
-                if (w1.equals(w2)) {
-                    common++;
-                    break;
-                }
+            if (wordSet2.contains(w1)) {
+                common++;
             }
         }
 
