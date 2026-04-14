@@ -81,7 +81,11 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>
+                  个人信息
+                </el-dropdown-item>
+                <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
                 </el-dropdown-item>
@@ -119,12 +123,17 @@ const routeNameMap = {
   '/stats': '数据分析',
   '/system/users': '用户管理',
   '/system/roles': '角色管理',
-  '/system/logs': '操作日志'
+  '/system/logs': '操作日志',
+  '/profile': '个人信息'
 }
 
 const currentRoute = computed(() => routeNameMap[route.path] || '')
 
 function handleCommand(cmd) {
+  if (cmd === 'profile') {
+    router.push('/profile')
+    return
+  }
   if (cmd === 'logout') {
     ElMessageBox.confirm('确定要退出登录吗？', '提示', {
       confirmButtonText: '确定',

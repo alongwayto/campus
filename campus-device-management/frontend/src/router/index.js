@@ -51,6 +51,11 @@ const routes = [
         path: 'system/logs',
         name: 'LogList',
         component: () => import('../views/system/LogList.vue')
+      },
+      {
+        path: 'profile',
+        name: 'UserProfile',
+        component: () => import('../views/profile/UserProfile.vue')
       }
     ]
   }
