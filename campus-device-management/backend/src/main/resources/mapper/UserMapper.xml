@@ -63,4 +63,8 @@
         DELETE FROM user WHERE id = #{id}
     </delete>
 
+    <update id="updatePassword">
+        UPDATE `user` SET `password` = #{password}, `updated_at` = NOW() WHERE `id` = #{id}
+    </update>
+
 </mapper>
