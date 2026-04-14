@@ -9,12 +9,14 @@ import com.campus.device.model.entity.Role;
 import com.campus.device.model.entity.User;
 import com.campus.device.security.JwtUtils;
 import com.campus.device.service.AuthService;
+import com.campus.device.service.CaptchaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +26,15 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
+    private final CaptchaService captchaService;
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        if (StringUtils.hasText(request.getCaptchaCode()) && StringUtils.hasText(request.getSessionId())) {
+            if (!captchaService.validateCaptcha(request.getSessionId(), request.getCaptchaCode())) {
+                throw new BusinessException(400, "验证码错误");
+            }
+        }
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
