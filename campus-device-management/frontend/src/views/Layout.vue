@@ -40,6 +40,25 @@
           <template #title>数据分析</template>
         </el-menu-item>
 
+        <el-sub-menu index="ai">
+          <template #title>
+            <el-icon><MagicStick /></el-icon>
+            <span>AI 智能分析</span>
+          </template>
+          <el-menu-item index="/ai/diagnosis">
+            <el-icon><Search /></el-icon>
+            <template #title>故障诊断</template>
+          </el-menu-item>
+          <el-menu-item index="/ai/prediction">
+            <el-icon><TrendCharts /></el-icon>
+            <template #title>健康预测</template>
+          </el-menu-item>
+          <el-menu-item index="/ai/anomaly">
+            <el-icon><Bell /></el-icon>
+            <template #title>异常检测</template>
+          </el-menu-item>
+        </el-sub-menu>
+
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -81,7 +100,15 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>
+                  个人信息
+                </el-dropdown-item>
+                <el-dropdown-item command="password">
+                  <el-icon><Lock /></el-icon>
+                  修改密码
+                </el-dropdown-item>
+                <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
                 </el-dropdown-item>
@@ -117,9 +144,14 @@ const routeNameMap = {
   '/faults': '故障管理',
   '/monitor': '状态监控',
   '/stats': '数据分析',
+  '/ai/diagnosis': 'AI 故障诊断',
+  '/ai/prediction': 'AI 健康预测',
+  '/ai/anomaly': 'AI 异常检测',
   '/system/users': '用户管理',
   '/system/roles': '角色管理',
-  '/system/logs': '操作日志'
+  '/system/logs': '操作日志',
+  '/user/profile': '个人信息',
+  '/user/password': '修改密码'
 }
 
 const currentRoute = computed(() => routeNameMap[route.path] || '')
@@ -135,6 +167,10 @@ function handleCommand(cmd) {
       ElMessage.success('已退出登录')
       router.push('/login')
     }).catch(() => {})
+  } else if (cmd === 'profile') {
+    router.push('/user/profile')
+  } else if (cmd === 'password') {
+    router.push('/user/password')
   }
 }
 </script>
