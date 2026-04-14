@@ -1,5 +1,6 @@
 package com.campus.device.service.impl;
 
+import com.campus.device.controller.CaptchaController;
 import com.campus.device.dao.RoleMapper;
 import com.campus.device.dao.UserMapper;
 import com.campus.device.exception.BusinessException;
@@ -27,6 +28,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        // Validate captcha if provided
+        if (request.getCaptchaCode() != null && request.getSessionId() != null) {
+            boolean valid = CaptchaController.validateCaptcha(request.getSessionId(), request.getCaptchaCode());
+            if (!valid) {
+                throw new BusinessException(400, "验证码错误或已过期");
+            }
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -49,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
                     .userId(user != null ? user.getId() : null)
                     .build();
         } catch (AuthenticationException e) {
-            throw new BusinessException(401, "Invalid username or password");
+            throw new BusinessException(401, "用户名或密码错误");
         }
     }
 
