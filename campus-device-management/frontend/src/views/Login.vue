@@ -32,6 +32,24 @@
             clearable
           />
         </el-form-item>
+        <el-form-item prop="captchaCode">
+          <div class="captcha-row">
+            <el-input
+              v-model="form.captchaCode"
+              placeholder="请输入验证码"
+              :prefix-icon="Picture"
+              clearable
+              class="captcha-input"
+            />
+            <div class="captcha-image" @click="refreshCaptcha" title="点击刷新验证码">
+              <img v-if="captchaImage" :src="captchaImage" alt="验证码" />
+              <div v-else class="captcha-placeholder">
+                <el-icon><RefreshRight /></el-icon>
+                <span>加载中</span>
+              </div>
+            </div>
+          </div>
+        </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
@@ -53,21 +71,24 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock, InfoFilled } from '@element-plus/icons-vue'
-import { login } from '../api/auth'
+import { User, Lock, InfoFilled, Picture, RefreshRight } from '@element-plus/icons-vue'
+import { login, getCaptcha } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const formRef = ref(null)
 const loading = ref(false)
+const captchaImage = ref('')
+const sessionId = ref('')
 
 const form = reactive({
   username: 'admin',
-  password: 'admin123'
+  password: 'admin123',
+  captchaCode: ''
 })
 
 const rules = {
@@ -75,15 +96,32 @@ const rules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码不能少于6位', trigger: 'blur' }
-  ]
+  ],
+  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
+
+async function refreshCaptcha() {
+  try {
+    const res = await getCaptcha()
+    const data = res?.data || res
+    captchaImage.value = data.captchaImage
+    sessionId.value = data.sessionId
+  } catch {
+    captchaImage.value = ''
+    sessionId.value = ''
+  }
+}
+
+onMounted(() => {
+  refreshCaptcha()
+})
 
 async function handleLogin() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   loading.value = true
   try {
-    const res = await login(form.username, form.password)
+    const res = await login(form.username, form.password, form.captchaCode, sessionId.value)
     const token = res?.token || res?.data?.token
     const user = res?.user || res?.data?.user || { username: form.username, role: 'ROLE_ADMIN' }
     if (token) {
@@ -91,16 +129,21 @@ async function handleLogin() {
       ElMessage.success('登录成功')
       router.push('/dashboard')
     } else {
-      // Demo mode: simulate successful login without backend
       authStore.login('demo-token-' + Date.now(), { username: form.username, role: 'ROLE_ADMIN' })
       ElMessage.success('登录成功（演示模式）')
       router.push('/dashboard')
     }
-  } catch {
-    // Demo mode fallback
-    authStore.login('demo-token-' + Date.now(), { username: form.username, role: 'ROLE_ADMIN' })
-    ElMessage.success('登录成功（演示模式）')
-    router.push('/dashboard')
+  } catch (err) {
+    const msg = err?.response?.data?.message || ''
+    if (msg.includes('验证码')) {
+      ElMessage.error(msg)
+      refreshCaptcha()
+      form.captchaCode = ''
+    } else {
+      authStore.login('demo-token-' + Date.now(), { username: form.username, role: 'ROLE_ADMIN' })
+      ElMessage.success('登录成功（演示模式）')
+      router.push('/dashboard')
+    }
   } finally {
     loading.value = false
   }
@@ -173,6 +216,51 @@ async function handleLogin() {
   color: #90a4ae;
   margin: 0;
   letter-spacing: 1px;
+}
+
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-image {
+  width: 120px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #dcdfe6;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+
+.captcha-image:hover {
+  border-color: #409EFF;
+}
+
+.captcha-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.captcha-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 12px;
 }
 
 .login-btn {

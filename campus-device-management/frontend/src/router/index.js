@@ -38,6 +38,31 @@ const routes = [
         component: () => import('../views/stats/Statistics.vue')
       },
       {
+        path: 'ai/diagnosis',
+        name: 'AiDiagnosis',
+        component: () => import('../views/ai/AiDiagnosis.vue')
+      },
+      {
+        path: 'ai/prediction',
+        name: 'AiPrediction',
+        component: () => import('../views/ai/AiPrediction.vue')
+      },
+      {
+        path: 'ai/anomaly',
+        name: 'AiAnomaly',
+        component: () => import('../views/ai/AiAnomaly.vue')
+      },
+      {
+        path: 'user/profile',
+        name: 'UserProfile',
+        component: () => import('../views/user/UserProfile.vue')
+      },
+      {
+        path: 'user/password',
+        name: 'ChangePassword',
+        component: () => import('../views/user/ChangePassword.vue')
+      },
+      {
         path: 'system/users',
         name: 'UserManage',
         component: () => import('../views/system/UserManage.vue')
