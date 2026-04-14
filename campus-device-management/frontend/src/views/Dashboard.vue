@@ -3,7 +3,7 @@
     <!-- Stat Cards -->
     <el-row :gutter="20" class="stat-row">
       <el-col :span="6" v-for="card in statCards" :key="card.title">
-        <div class="stat-card" :style="{ borderTopColor: card.color }">
+        <div class="stat-card" :style="{ borderTopColor: card.color, cursor: 'pointer' }" @click="$router.push(card.link)">
           <div class="stat-icon" :style="{ background: card.color + '1a', color: card.color }">
             <el-icon :size="28"><component :is="card.icon" /></el-icon>
           </div>
@@ -38,30 +38,58 @@
       </el-col>
     </el-row>
 
-    <!-- Recent Faults Table -->
-    <el-card class="recent-card">
-      <template #header>
-        <div class="card-header">
-          <span class="card-title">最近故障记录</span>
-          <el-button text type="primary" @click="$router.push('/faults')">查看全部</el-button>
-        </div>
-      </template>
-      <el-table :data="recentFaults" stripe>
-        <el-table-column prop="title" label="故障标题" min-width="160" />
-        <el-table-column prop="deviceName" label="设备名称" width="140" />
-        <el-table-column prop="severity" label="严重程度" width="100">
-          <template #default="{ row }">
-            <el-tag :type="severityType(row.severity)" size="small">{{ row.severity }}</el-tag>
+    <!-- Recent Faults & AI Alerts -->
+    <el-row :gutter="20">
+      <el-col :span="14">
+        <el-card class="recent-card">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">最近故障记录</span>
+              <el-button text type="primary" @click="$router.push('/faults')">查看全部</el-button>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="statusType(row.status)" size="small">{{ row.status }}</el-tag>
+          <el-table :data="recentFaults" stripe size="small">
+            <el-table-column prop="title" label="故障标题" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="deviceName" label="设备名称" width="140" show-overflow-tooltip />
+            <el-table-column prop="severity" label="严重程度" width="80">
+              <template #default="{ row }">
+                <el-tag :type="severityType(row.severity)" size="small">{{ row.severity }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="80">
+              <template #default="{ row }">
+                <el-tag :type="statusType(row.status)" size="small">{{ row.status }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="reportTime" label="上报时间" width="140" />
+          </el-table>
+        </el-card>
+      </el-col>
+      <el-col :span="10">
+        <el-card class="alert-card">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">
+                <el-icon style="color: #e6a23c; margin-right: 4px"><WarningFilled /></el-icon>
+                AI 智能预警
+              </span>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column prop="reportTime" label="上报时间" width="160" />
-      </el-table>
-    </el-card>
+          <div class="alert-list">
+            <div v-for="alert in anomalyAlerts" :key="alert.id" class="alert-item" :class="'alert-' + alert.level">
+              <div class="alert-header">
+                <el-tag :type="alert.level === 'high' ? 'danger' : alert.level === 'medium' ? 'warning' : 'info'" size="small">
+                  {{ alert.level === 'high' ? '高' : alert.level === 'medium' ? '中' : '低' }}
+                </el-tag>
+                <span class="alert-type">{{ alert.type }}</span>
+              </div>
+              <div class="alert-content">{{ alert.message }}</div>
+              <div class="alert-device">{{ alert.device }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -75,18 +103,27 @@ let pieChart = null
 let lineChart = null
 
 const statCards = ref([
-  { title: '设备总数', value: 328, color: '#409EFF', icon: 'Monitor' },
-  { title: '在线设备', value: 256, color: '#67C23A', icon: 'CircleCheck' },
-  { title: '故障设备', value: 18, color: '#F56C6C', icon: 'CircleClose' },
-  { title: '待处理故障', value: 7, color: '#E6A23C', icon: 'Warning' }
+  { title: '设备总数', value: 25, color: '#409EFF', icon: 'Monitor', link: '/devices' },
+  { title: '在线设备', value: 15, color: '#67C23A', icon: 'CircleCheck', link: '/devices' },
+  { title: '故障设备', value: 6, color: '#F56C6C', icon: 'CircleClose', link: '/faults' },
+  { title: '待处理故障', value: 7, color: '#E6A23C', icon: 'Warning', link: '/faults' }
 ])
 
 const recentFaults = ref([
-  { title: '教学楼3F投影仪无法启动', deviceName: '爱普生投影仪', severity: '高', status: '处理中', reportTime: '2024-01-15 09:32' },
-  { title: '图书馆打印机卡纸', deviceName: 'HP激光打印机', severity: '中', status: '已解决', reportTime: '2024-01-15 08:15' },
-  { title: '实验室A网络交换机异常', deviceName: 'Cisco交换机', severity: '高', status: '待处理', reportTime: '2024-01-14 17:45' },
-  { title: '行政楼空调不制冷', deviceName: '格力空调', severity: '中', status: '已派单', reportTime: '2024-01-14 14:20' },
-  { title: '体育馆音响设备杂音', deviceName: 'BOSE音响', severity: '低', status: '待处理', reportTime: '2024-01-14 10:05' }
+  { title: '复印机扫描功能故障', deviceName: '教务处复印机', severity: '中', status: '处理中', reportTime: '2026-04-14 08:00' },
+  { title: '服务器内存报错', deviceName: '数据中心服务器-01', severity: '高', status: '待处理', reportTime: '2026-04-13 15:00' },
+  { title: '查询终端屏幕闪烁', deviceName: '图书馆查询终端-01', severity: '中', status: '处理中', reportTime: '2026-04-13 08:30' },
+  { title: '智能讲台话筒无声', deviceName: '教学楼A-301智能讲台', severity: '中', status: '已派单', reportTime: '2026-04-12 13:00' },
+  { title: '打印机打印模糊', deviceName: '行政办公室激光打印机', severity: '低', status: '待处理', reportTime: '2026-04-12 10:00' },
+  { title: '示波器探头损坏', deviceName: '电子实验室示波器-01', severity: '中', status: '处理中', reportTime: '2026-04-12 08:00' }
+])
+
+const anomalyAlerts = ref([
+  { id: 1, level: 'high', type: '设备故障', message: '6台设备处于故障状态，需要及时处理', device: '图书馆查询终端等' },
+  { id: 2, level: 'high', type: '服务器预警', message: '服务器内存ECC纠错频率异常增高', device: '数据中心服务器-01' },
+  { id: 3, level: 'medium', type: '设备离线', message: '4台设备处于离线状态，建议排查', device: '宿舍楼B区无线AP等' },
+  { id: 4, level: 'medium', type: '保修到期', message: '3台设备保修即将到期', device: '图书馆交换机等' },
+  { id: 5, level: 'low', type: '维护提醒', message: '5台设备需要定期维护保养', device: '行政楼中央空调主机等' }
 ])
 
 function severityType(s) {
@@ -109,9 +146,9 @@ function initPieChart() {
       radius: ['40%', '68%'],
       center: ['50%', '45%'],
       data: [
-        { value: 256, name: '在线', itemStyle: { color: '#67C23A' } },
-        { value: 54, name: '离线', itemStyle: { color: '#909399' } },
-        { value: 18, name: '故障', itemStyle: { color: '#F56C6C' } }
+        { value: 15, name: '在线', itemStyle: { color: '#67C23A' } },
+        { value: 4, name: '离线', itemStyle: { color: '#909399' } },
+        { value: 6, name: '故障', itemStyle: { color: '#F56C6C' } }
       ],
       label: { formatter: '{b}\n{d}%' }
     }]
@@ -120,7 +157,7 @@ function initPieChart() {
 
 function initLineChart() {
   lineChart = echarts.init(lineRef.value)
-  const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+  const months = ['5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月', '1月', '2月', '3月', '4月']
   lineChart.setOption({
     tooltip: { trigger: 'axis' },
     legend: { data: ['故障数量', '已解决'] },
@@ -132,7 +169,7 @@ function initLineChart() {
         name: '故障数量',
         type: 'line',
         smooth: true,
-        data: [12, 8, 15, 10, 18, 22, 16, 14, 20, 17, 13, 11],
+        data: [5, 8, 6, 10, 7, 9, 12, 8, 11, 6, 14, 30],
         itemStyle: { color: '#F56C6C' },
         areaStyle: { color: 'rgba(245, 108, 108, 0.1)' }
       },
@@ -140,7 +177,7 @@ function initLineChart() {
         name: '已解决',
         type: 'line',
         smooth: true,
-        data: [10, 7, 14, 9, 16, 20, 15, 13, 18, 15, 12, 10],
+        data: [4, 7, 5, 9, 6, 8, 11, 7, 10, 5, 12, 22],
         itemStyle: { color: '#67C23A' },
         areaStyle: { color: 'rgba(103, 194, 58, 0.1)' }
       }
@@ -234,6 +271,8 @@ onBeforeUnmount(() => {
   font-size: 15px;
   font-weight: 600;
   color: #303133;
+  display: flex;
+  align-items: center;
 }
 
 .card-header {
@@ -242,7 +281,50 @@ onBeforeUnmount(() => {
   justify-content: space-between;
 }
 
-.recent-card {
+.recent-card,
+.alert-card {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-item {
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #909399;
+  background: #f9f9fb;
+}
+
+.alert-high { border-left-color: #f56c6c; background: #fef0f0; }
+.alert-medium { border-left-color: #e6a23c; background: #fdf6ec; }
+.alert-low { border-left-color: #409eff; background: #ecf5ff; }
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.alert-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.alert-content {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.alert-device {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
 }
 </style>
